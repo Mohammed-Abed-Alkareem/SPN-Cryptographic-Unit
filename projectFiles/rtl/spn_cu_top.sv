@@ -35,8 +35,8 @@ module spn_cu_top (spn_if.dut bus);
   end
 
   
-  always_ff @(posedge bus.clk or posedge bus.rst_n) begin
-    if (bus.rst_n) begin 
+  always_ff @(posedge bus.clk or posedge bus.rst) begin
+    if (bus.rst) begin 
       bus.valid    <= '0;
       bus.data_out <= '0;
     end

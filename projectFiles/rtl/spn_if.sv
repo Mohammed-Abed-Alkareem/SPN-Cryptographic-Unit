@@ -1,7 +1,7 @@
 // ============================================================================
 //  spn_if — synthesizable interface bundling DUT signals
 // ============================================================================
-interface spn_if #(int DW = 16, KW = 32) (input logic clk, rst_n);
+interface spn_if #(int DW = 16, KW = 32) (input logic clk, rst);
 
   // Inputs driven to the DUT
   logic [1:0]    opcode;    // 00=nop 01=enc 10=dec 11=undefined
@@ -14,10 +14,10 @@ interface spn_if #(int DW = 16, KW = 32) (input logic clk, rst_n);
                             // 11: internal error or undefined operation
 
   /*-------------- Direction-controlled modports ---------------------------*/
-  modport dut (input  clk, rst_n, opcode, data_in, symmetric_secret_key,
+  modport dut (input  clk, rst, opcode, data_in, symmetric_secret_key,
                output data_out, valid);
                
   modport tb  (output opcode, data_in, symmetric_secret_key,
-               input  clk, rst_n, data_out, valid);
+               input  clk, rst, data_out, valid);
 
 endinterface
