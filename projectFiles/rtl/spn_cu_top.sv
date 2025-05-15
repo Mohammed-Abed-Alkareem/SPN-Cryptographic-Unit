@@ -1,7 +1,7 @@
 // ============================================================================
 //  spn_cu_top — 3-round SPN encryption/decryption core
-//  • Single-cycle latency (rounds are combinational)
-//  • Separate encrypt & decrypt pipelines
+//  Single-cycle latency (rounds are combinational)
+//  Separate encrypt & decrypt pipelines
 // ============================================================================
 `include "spn_sbox_pkg.sv"
 module spn_cu_top (spn_if.dut bus);
@@ -30,8 +30,8 @@ module spn_cu_top (spn_if.dut bus);
   // Creating two separate parallel pipelines one for encryption and the other for decryption
   // Implicit generate block
   for (genvar i = 0; i < 3; i++) begin : G_ROUND
-    spn_round encryption_round (.data_in(P[i]), .key_mix(Enc_R_K [i]), .data_out(P[i+1]));
-    spn_round decryption_round (.data_in(C[i]), .key_mix(Dec_R_K [i]), .data_out(C[i+1]));
+    spn_round encryption_round (.data_in(P[i]), .round_key(Enc_R_K [i]), .data_out(P[i+1]));
+    spn_round decryption_round (.data_in(C[i]), .round_key(Dec_R_K [i]), .data_out(C[i+1]));
   end
 
   
