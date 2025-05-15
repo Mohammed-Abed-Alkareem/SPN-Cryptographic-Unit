@@ -7,46 +7,56 @@
 module spn_cu_top (spn_if.dut bus);
   import spn_sbox_pkg::*;
 
-  /*-----  Key schedule: derive 3×16-bit round keys ------------------------*/
-  logic [15:0] R [0:2];         // forward (encrypt)
-  logic [15:0] Ri[0:2];         // reverse (decrypt)
+  logic [15:0] Enc_R_K [0:2];         // Encryption Round Keys
+  logic [15:0] Dec_R_K [0:2];         // Decryption Round Keys
 
+  // Round Key Mixing 
   always_comb begin
-    R[0]  = {bus.key_i[ 7:0], bus.key_i[23:16]};
-    R[1]  =  bus.key_i[15:0];
-    R[2]  = {bus.key_i[ 7:0], bus.key_i[31:24]};
-    Ri[0] = R[2];               // reverse order
-    Ri[1] = R[1];
-    Ri[2] = R[0];
+    // Extracting encryption keys
+    Enc_R_K[0]  = {bus.symmetric_secret_key[ 7:0], bus.symmetric_secret_key[23:16]};
+    Enc_R_K[1]  =  bus.symmetric_secret_key[15:0];
+    Enc_R_K[2]  = {bus.symmetric_secret_key[ 7:0], bus.symmetric_secret_key[31:24]};
+    // Decryption keys are in reverse order of the encryption keys
+    Dec_R_K[0] = Enc_R_K[2];               
+    Dec_R_K[1] = Enc_R_K[1];
+    Dec_R_K[2] = Enc_R_K[0];
   end
 
-  /*-----  Parallel encrypt/decrypt pipelines ------------------------------*/
-  logic [15:0] e[0:3], d[0:3];
-  assign e[0] = bus.data_i;
-  assign d[0] = bus.data_i;
+  logic [15:0] P[0:3], C[0:3];  // Pi in encryption, Ci in decryption
+  
+  assign P[0] = bus.data_in;
+  assign C[0] = bus.data_in;
 
+  // Creating two separate parallel pipelines one for encryption and the other for decryption
+  // Implicit generate block
   for (genvar i = 0; i < 3; i++) begin : G_ROUND
-    spn_round u_enc (.data_in(e[i]), .key_mix(R [i]), .data_out(e[i+1]));
-    spn_round u_dec (.data_in(d[i]), .key_mix(Ri[i]), .data_out(d[i+1]));
+    spn_round encryption_round (.data_in(P[i]), .key_mix(Enc_R_K [i]), .data_out(P[i+1]));
+    spn_round decryption_round (.data_in(C[i]), .key_mix(Dec_R_K [i]), .data_out(C[i+1]));
   end
 
-  /*-----  Minimal control / output registers ------------------------------*/
-  always_ff @(posedge bus.clk or negedge bus.rst_n) begin
-    if (!bus.rst_n) begin 
-      bus.valid  <= '0;
-      bus.data_o <= '0;
+  
+  always_ff @(posedge bus.clk or posedge bus.rst_n) begin
+    if (bus.rst_n) begin 
+      bus.valid    <= '0;
+      bus.data_out <= '0;
     end
     else begin
-      bus.valid <= 2'b00;       // default: “no result”
+      bus.valid <= 2'b00;       // Default: “no valid output”
       unique case (bus.opcode)
-        2'b01: begin            // encrypt
-          bus.data_o <= e[3];
-          bus.valid  <= 2'b01;
+        
+        2'b01: begin            // Encrypt
+          bus.data_out <= P[3];
+          bus.valid    <= 2'b01;
         end
-        2'b10: begin            // decrypt
-          bus.data_o <= d[3];
-          bus.valid  <= 2'b10;
+
+        2'b10: begin            // Decrypt
+          bus.data_out <= C[3];
+          bus.valid    <= 2'b10;
         end
+
+        default:                // No operation / undefined
+          ;
+
       endcase
     end
   end
