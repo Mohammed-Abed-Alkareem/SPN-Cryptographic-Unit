@@ -43,7 +43,10 @@ module spn_cu_top (spn_if.dut bus);
     else begin
       bus.valid <= 2'b00;       // Default: “no valid output”
       unique case (bus.opcode)
-        
+        2'b00:
+          ; // If the opcode is 00 dont do anything and the ouput is not valid by default
+            // This case is inserted since the unique case will trigger and error/warning when it comes across it
+
         2'b01: begin            // Encrypt
           bus.data_out <= P[3];
           bus.valid    <= 2'b01;
@@ -54,9 +57,10 @@ module spn_cu_top (spn_if.dut bus);
           bus.valid    <= 2'b10;
         end
 
-        default:                // No operation / undefined
-          ;
-
+        2'b11:                  // Undefined 
+          bus.valid    <= 2'b11;
+          
+      // unqique case will trigger a warning/error for any other cases not mentioned
       endcase
     end
   end
