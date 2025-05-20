@@ -3,7 +3,8 @@
 // --------------------------------------------------------------------------
 //  Import any shared packages BEFORE the DUT. (S-boxes, etc.)
 // --------------------------------------------------------------------------
-`include "spn_sbox_pkg.sv"              // <-- if your core needs it
+import spn_sbox_pkg::*;
+
 
 module tb_spn_simple;
 

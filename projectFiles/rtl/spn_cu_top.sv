@@ -3,7 +3,8 @@
 //  Single-cycle latency (rounds are combinational)
 //  Separate encrypt & decrypt pipelines
 // ============================================================================
-`include "spn_sbox_pkg.sv"
+import spn_sbox_pkg::*;
+
 module spn_cu_top (spn_if.dut bus);
   import spn_sbox_pkg::*;
 

@@ -1,7 +1,8 @@
 // ============================================================================
 //  spn_round — one encryption/decryption round (combinational)
 // ============================================================================
-`include "spn_sbox_pkg.sv"
+import spn_sbox_pkg::*;
+
 module spn_round #(int DW = 16)(
   input  logic [DW-1:0] data_in,
   input  logic [DW-1:0] round_key,
