@@ -1,4 +1,3 @@
-`timescale 1ns/1ps
 
 // --------------------------------------------------------------------------
 //  Import any shared packages BEFORE the DUT. (S-boxes, etc.)
@@ -55,7 +54,9 @@ module tb_spn_simple;
     bus.data_in = PLAINTEXT;
     bus.opcode  = 2'b01;                  // encrypt command
 
-    @(posedge clk);                       // single-cycle latency in core
+    // -> give the core one extra cycle to sample the opcode
+    @(posedge clk);                      // 1st edge: core sees opcode
+    @(posedge clk);                      // 2nd edge: valid becomes 01
     assert (bus.valid == 2'b01)
       else $fatal("[TB] Encrypt valid flag not set!");
 
