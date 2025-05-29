@@ -1,65 +1,57 @@
-// ============================================================================
-//  spn_cu_top — 3-round SPN encryption/decryption core
-//  Single-cycle latency (rounds are combinational)
-//  Separate encrypt & decrypt pipelines
-// ============================================================================
-import spn_sbox_pkg::*;
-
-module spn_cu_top (spn_if.dut bus);
-  import spn_sbox_pkg::*;
-
-  logic [15:0] Enc_R_K [0:2];         // Encryption Round Keys
-  logic [15:0] Dec_R_K [0:2];         // Decryption Round Keys
-
-  // Round Key Mixing 
-  always_comb begin
-    // Extracting encryption keys
-    Enc_R_K[0]  = {bus.symmetric_secret_key[ 7:0], bus.symmetric_secret_key[23:16]};
-    Enc_R_K[1]  =  bus.symmetric_secret_key[15:0];
-    Enc_R_K[2]  = {bus.symmetric_secret_key[ 7:0], bus.symmetric_secret_key[31:24]};
-    // Decryption keys are in reverse order of the encryption keys
-    Dec_R_K[0] = Enc_R_K[2];               
-    Dec_R_K[1] = Enc_R_K[1];
-    Dec_R_K[2] = Enc_R_K[0];
-  end
-
-  logic [15:0] P[0:3], C[0:3];  // Pi in encryption, Ci in decryption
+module spn_cu_top (
   
-  assign P[0] = bus.data_in;
-  assign C[0] = bus.data_in;
+  spn_if.dut bus,											   
+  
+  // Variables to store internal changes for debugging purposes
+  output logic [15:0] key_mix_out [0:2],   // Result of each xor operation (Encryption/Decryption)
+  output logic [15:0] sbox_out [0:2],      // Result of each sbox (Encryption/Decryption)
+  output logic [15:0] pbox_out [0:2],      // Result of each pbox (Encryption/Decryption)
+ 
+);
+  import spn_cu_pkg::*;
+
+  logic [15:0] round_keys [0:2];      // Encryption/Decryption Round Keys
+  
+  // Key scheduling
+  key_scheduler ksch (bus.symmetric_secret_key, bus.opcode[1], round_keys);
+  
+  logic [15:0] X[0:3];  // Xi in encryption or Xi in decryption
+  
+  assign X[0] = bus.data_in;
 
   // Creating two separate parallel pipelines one for encryption and the other for decryption
-  // Implicit generate block
-  for (genvar i = 0; i < 3; i++) begin : G_ROUND
-    spn_round encryption_round (.data_in(P[i]), .round_key(Enc_R_K [i]), .data_out(P[i+1]));
-    spn_round decryption_round (.data_in(C[i]), .round_key(Dec_R_K [i]), .data_out(C[i+1]));
-  end
-
+  generate
+	  for (genvar i = 0; i < 3; i++) begin : G_ROUND
+	      spn_round round (.data_in(X[i]), .round_key(round_keys [i]), .mode(bus.opcode[1]), .data_out(X[i+1]), .key_mix_out(key_mix_out[i]), .sbox_out(sbox_out[i]), .pbox_out(pbox_out[i]));
+	  end
+  endgenerate
   
   always_ff @(posedge bus.clk or posedge bus.rst) begin
-    if (bus.rst) begin 
-      bus.valid    <= '0;
+    
+	if (bus.rst) begin 
+      bus.valid    <= not_valid;
       bus.data_out <= '0;
     end
+	
     else begin
-      bus.valid <= 2'b00;       // Default: “no valid output”
+      bus.valid <= not_valid;       // Default: �no valid output�
       unique case (bus.opcode)
-        2'b00:
+        no_op:
           ; // If the opcode is 00 dont do anything and the ouput is not valid by default
             // This case is inserted since the unique case will trigger and error/warning when it comes across it
 
-        2'b01: begin            // Encrypt
-          bus.data_out <= P[3];
-          bus.valid    <= 2'b01;
+        encrypt: begin            // Encrypt
+          bus.data_out <= X[3];
+          bus.valid    <= successful_encryption;
         end
 
-        2'b10: begin            // Decrypt
-          bus.data_out <= C[3];
-          bus.valid    <= 2'b10;
+        decrypt: begin            // Decrypt
+          bus.data_out <= X[3];
+          bus.valid    <= successful_decryption;
         end
 
-        2'b11:                  // Undefined 
-          bus.valid    <= 2'b11;
+        undefined:                  // Undefined 
+          bus.valid    <= internal_error_or_undefined;
           
       // unqique case will trigger a warning/error for any other cases not mentioned
       endcase
