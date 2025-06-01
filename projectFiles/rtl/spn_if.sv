@@ -28,7 +28,7 @@ interface spn_if (
 
   // modports
   modport DUT (input  clk, rst, opcode, data_in, symmetric_secret_key,
-              output data_out, valid);
+              output data_out, valid);    
   modport DRIVER (clocking driver_cb, input rst);
   modport MONITOR (clocking monitor_cb, input rst);
             

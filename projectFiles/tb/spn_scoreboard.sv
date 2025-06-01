@@ -1,9 +1,8 @@
-import spn_cu_pkg::*;
 class spn_scoreboard extends uvm_scoreboard;
 
   spn_seq_item pkt_qu[$];
   SPNReferenceModel ref_model;
-  bit [7:0] sc_spn [4];
+  bit [7:0] sc_spn [4]; // Not used
 
 
   uvm_analysis_imp#(spn_seq_item, spn_scoreboard) scb_analysis_imp;
@@ -26,7 +25,6 @@ class spn_scoreboard extends uvm_scoreboard;
     //pkt.print();
     pkt_qu.push_back(pkt);
   endfunction : write
-
   virtual task run_phase(uvm_phase phase);
     spn_seq_item spn_actual;
     super.run_phase(phase);
@@ -34,18 +32,36 @@ class spn_scoreboard extends uvm_scoreboard;
     forever begin
       wait(pkt_qu.size() > 0);
       spn_actual = pkt_qu.pop_front();
+      
+      // Set reference model inputs
       ref_model.data_in = spn_actual.data_in;
       ref_model.symmetric_secret_key = spn_actual.symmetric_secret_key;
       ref_model.opcode = spn_actual.opcode;
-      ref_model.predict();
-      if(spn_actual.valid) begin
-        if(ref_model.data_out !== spn_actual.data_out) begin
-          `uvm_error(get_type_name(), $sformatf("Mismatch in data_out: Expected %h, got %h", ref_model.data_out, spn_actual.data_out));
+      
+      // Set mode based on opcode for reference model
+      case(spn_actual.opcode)
+        2'b01: ref_model.mode = 0; // encrypt
+        2'b10: ref_model.mode = 1; // decrypt  
+        default: ref_model.mode = 0; // nop/undefined
+      endcase
+      
+      // Only check output for valid operations (encrypt/decrypt)
+      if(spn_actual.opcode == 2'b01 || spn_actual.opcode == 2'b10) begin
+        ref_model.data_out = ref_model.predict();
+        
+        if(spn_actual.valid != 2'b00) begin // Check if DUT output is valid
+          if(ref_model.data_out !== spn_actual.data_out) begin
+            `uvm_error(get_type_name(), $sformatf("MISMATCH! Opcode=%0b Expected=%0h Actual=%0h", 
+                      spn_actual.opcode, ref_model.data_out, spn_actual.data_out));
+          end else begin
+            `uvm_info(get_type_name(), $sformatf("MATCH! Opcode=%0b Data=%0h", 
+                     spn_actual.opcode, spn_actual.data_out), UVM_LOW);
+          end
         end else begin
-          `uvm_info(get_type_name(), $sformatf("Data_out matches: %h", ref_model.data_out), UVM_LOW);
+          `uvm_info(get_type_name(), "DUT output marked as invalid, skipping comparison.", UVM_LOW);
         end
       end else begin
-        `uvm_info(get_type_name(), "Received invalid transaction, skipping comparison.", UVM_LOW);
+        `uvm_info(get_type_name(), $sformatf("No-op or undefined operation (opcode=%0b), skipping comparison.", spn_actual.opcode), UVM_LOW);
       end
     end  
       

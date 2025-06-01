@@ -1,9 +1,3 @@
-`include "spn_seq_item.sv"
-`include "spn_sequencer.sv"
-`include "spn_sequence.sv"
-`include "spn_driver.sv"
-`include "spn_monitor.sv"
-
 class spn_agent extends uvm_agent;
 
   spn_driver    driver;

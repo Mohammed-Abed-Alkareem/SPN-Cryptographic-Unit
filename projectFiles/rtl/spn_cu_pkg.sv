@@ -23,6 +23,7 @@ package spn_cu_pkg;
 	
 	    rand logic [15:0] data_in;
 	    rand logic [31:0] symmetric_secret_key;
+	    rand logic [1:0]  opcode;   
 	    rand logic        mode; // 0-> encryption / 1-> decryption
 	         logic [15:0] data_out;
 	    
@@ -97,10 +98,9 @@ package spn_cu_pkg;
 	            sbox_out[i +: 4] = invsbox_lookup(pbox_out[i +: 4]);
 	        return sbox_out ^ key;
 	        end
-	    endfunction
-	
-	    // Process (encryption or decryption)
-	    function logic [15:0] predict();
+	    endfunction	    // Process (encryption or decryption)
+	    
+		function logic [15:0] predict();
 	        logic [15:0] data;
 	        compute_keys(symmetric_secret_key);
 	        if (mode == 0) begin
@@ -114,7 +114,15 @@ package spn_cu_pkg;
 	        end
 	        return data;
 	    endfunction
-	
+
+	    // Alternative interface for compatibility with standalone testbench
+	    function logic [15:0] process(logic [15:0] input_data, logic [31:0] key, logic operation_mode);
+	        data_in = input_data;
+	        symmetric_secret_key = key;
+	        mode = operation_mode;
+	        return predict();
+	    endfunction
+
 	endclass
 
 endpackage

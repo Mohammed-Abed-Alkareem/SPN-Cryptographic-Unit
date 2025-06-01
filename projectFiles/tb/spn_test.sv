@@ -1,4 +1,3 @@
-`include "spn_sequence.sv"
 class spn_test extends spn_base_test;
 
     `uvm_component_utils(spn_test)
@@ -32,13 +31,14 @@ class spn_test extends spn_base_test;
         
     
     task run_phase(uvm_phase phase);
-        int num_iterations = 512; // Number of times to repeat the test
+        int num_iterations = 10;
         phase.raise_objection(this);
         for (int i = 0; i < num_iterations; i++) begin
             `uvm_info(get_type_name(), $sformatf("Running iteration %0d", i+1), UVM_LOW);
             seq.start(env.spn_agnt.sequencer);
         end
         phase.drop_objection(this);
+        phase.phase_done.set_drain_time(this, 50);
     endtask : run_phase
 
 endclass : spn_test

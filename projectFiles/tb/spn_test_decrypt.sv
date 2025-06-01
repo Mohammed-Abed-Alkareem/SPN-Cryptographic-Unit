@@ -1,7 +1,6 @@
-`include "spn_sequence.sv"
 class spn_decrypt_test extends spn_base_test;
 
-  `uvm_component_utils(spn_test)
+  `uvm_component_utils(spn_decrypt_test)
   
   spn_sequence_decrypt seq;
 
@@ -21,6 +20,8 @@ class spn_decrypt_test extends spn_base_test;
     phase.raise_objection(this);
       seq.start(env.spn_agnt.sequencer);
     phase.drop_objection(this);
+    phase.phase_done.set_drain_time(this, 50);
+
   endtask : run_phase
   
-endclass : spn_test
+endclass : spn_decrypt_test

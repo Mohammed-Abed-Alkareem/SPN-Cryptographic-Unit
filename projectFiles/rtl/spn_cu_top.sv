@@ -1,11 +1,17 @@
+`include "spn_cu_pkg.sv"
+`include "invsbox.sv"
+`include "key_scheduler.sv"
+`include "sbox.sv"
+`include "spn_round.sv"
+
 module spn_cu_top (
   // using the dut modport of the spn_if interface
-  spn_if.dut bus,											   
+  spn_if.DUT bus,											   
   
   // Variables to store internal changes for debugging purposes
   output logic [15:0] key_mix_out [0:2],   // Result of each xor operation (Encryption/Decryption)
   output logic [15:0] sbox_out [0:2],      // Result of each sbox (Encryption/Decryption)
-  output logic [15:0] pbox_out [0:2],      // Result of each pbox (Encryption/Decryption)
+  output logic [15:0] pbox_out [0:2]      // Result of each pbox (Encryption/Decryption)
  
 );
 

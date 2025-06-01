@@ -1,6 +1,3 @@
-`include "spn_agent.sv"
-`include "spn_scoreboard.sv"
-
 class spn_model_env extends uvm_env;
 
   spn_agent      spn_agnt;
@@ -22,7 +19,7 @@ class spn_model_env extends uvm_env;
 
   function void connect_phase(uvm_phase phase);
     super.connect_phase(phase);
-    spn_agnt.monitor.item_collected_port.connect(spn_scb.item_collected_export);
+    spn_agnt.monitor.mon_analysis_port.connect(spn_scb.scb_analysis_imp);
   endfunction : connect_phase
 
 endclass : spn_model_env

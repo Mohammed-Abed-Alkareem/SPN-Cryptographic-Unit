@@ -1,4 +1,3 @@
-`define DRIVER_IF vif.DRIVER.driver_cb 
 class spn_driver extends uvm_driver #(spn_seq_item);
 
   virtual spn_if vif;
@@ -24,18 +23,26 @@ class spn_driver extends uvm_driver #(spn_seq_item);
       seq_item_port.item_done();
     end
   endtask : run_phase
-
   virtual task drive(spn_seq_item req);
   
-    @(DRIVER_IF);
+    @(vif.DRIVER.driver_cb);
 
     // Drive the request to the interface
-    DRIVER_IF.opcode <= req.opcode;
-    DRIVER_IF.data_in <= req.data_in;
-    DRIVER_IF.symmetric_secret_key <= req.symmetric_secret_key;
+    vif.DRIVER.driver_cb.opcode <= req.opcode;
+    vif.DRIVER.driver_cb.data_in <= req.data_in;
+    vif.DRIVER.driver_cb.symmetric_secret_key <= req.symmetric_secret_key;
 
-    `uvm_info(get_type_name(), $sformatf("Driving item: %s", item.convert2string()), UVM_LOW);
-
+    `uvm_info(get_type_name(), $sformatf("Driving item: %s", req.convert2string()), UVM_LOW);
+    
+    // Wait for DUT to process the transaction (give it two more clock cycle)
+    @(vif.DRIVER.driver_cb);
+    @(vif.DRIVER.driver_cb);
+    
+    // For no-op operations, add small delay to let the system settle
+    if(req.opcode == 2'b00) begin
+      repeat(2) @(vif.DRIVER.driver_cb);
+    end
+    
   endtask : drive
   
 endclass : spn_driver
