@@ -1,10 +1,12 @@
 package spn_cu_pkg;
+	
 	typedef enum bit [1:0] {
 	  no_op    = 2'b00,
 	  encrypt  = 2'b01,
 	  decrypt  = 2'b10,
 	  undefined= 2'b11
 	} operation_t;
+
 	typedef enum bit [1:0] {
 	  not_valid    = 2'b00,
 	  successful_encryption  = 2'b01,
@@ -98,7 +100,7 @@ package spn_cu_pkg;
 	    endfunction
 	
 	    // Process (encryption or decryption)
-	    function logic [15:0] process(input logic [15:0] data_in, input logic [31:0] symmetric_secret_key, input logic mode);
+	    function logic [15:0] predict();
 	        logic [15:0] data;
 	        compute_keys(symmetric_secret_key);
 	        if (mode == 0) begin

@@ -26,7 +26,7 @@ module spn_round (
   // Inverse/Regular Substitution Layer (S-box) (4 parallel 4-bit S-boxes)
   assign sbox_out = mode? dec_sbox : enc_sbox;
   
-  // Permutation Layer (P-box) � rotate (right/left) by half size (if input is 16-bits -> 8-bits)
+  // Permutation Layer (P-box) rotate (right/left) by one byte
   assign pbox_out = mode? {data_in[7:0], data_in[15:8]} : {sbox_out[7:0], sbox_out[15:8]};
   
   assign data_out = mode? key_mix_out : pbox_out;
