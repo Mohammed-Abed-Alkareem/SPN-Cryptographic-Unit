@@ -112,6 +112,7 @@ package spn_cu_pkg;
 	        data = round_decrypt(data, Dec_R_K[1]);
 	        data = round_decrypt(data, Dec_R_K[2]);
 	        end
+			$display("Predicting data_out=0x%0h for data_in=0x%0h with key=0x%0h in mode=%0d", data, data_in, symmetric_secret_key, mode);
 	        return data;
 	    endfunction
 

@@ -16,8 +16,9 @@ class spn_seq_item extends uvm_sequence_item;
 
   function new(string name = "spn_seq_item");
     super.new(name);
-    `uvm_info(get_type_name(), $sformatf("Creating spn_seq_item: %s", name), UVM_LOW);
+    `uvm_info(get_type_name(), $sformatf("\n\n----------------------------------\nCreating spn_seq_item: %s", name), UVM_LOW);
   endfunction
+
 
   // to_string function for printing sequence item contents
   function string convert2string();
