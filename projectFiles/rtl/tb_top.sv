@@ -70,8 +70,8 @@ module tb_top;
       bus.opcode  = encrypt;                  // encrypt command
       
       //Reference model call for encryption
-      rmodel.mode = ENCRYPT;
-      rmodel_ciphertext = rmodel.process(rmodel.data_in, rmodel.symmetric_secret_key, ENCRYPT);
+      rmodel.opcode = encrypt;  // Set the reference model opcode for encryption
+      rmodel_ciphertext = rmodel.predict();
 
       // Wait for two cycles to make sure the output is ready
       @(posedge clk);                      
@@ -110,7 +110,8 @@ module tb_top;
       bus.opcode  = decrypt;                  // decrypt command
       
       //Reference model call for decryption
-      rmodel_recovered_plaintext = rmodel.process(rmodel_ciphertext, rmodel.symmetric_secret_key, DECRYPT);
+      rmodel.opcode = decrypt;              // Set the reference model opcode for decryption
+      rmodel_recovered_plaintext = rmodel.predict();
       
       // Wait for two cycles to make sure the output is ready
       @(posedge clk);
