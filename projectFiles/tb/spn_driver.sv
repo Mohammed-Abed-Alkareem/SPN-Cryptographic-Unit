@@ -5,29 +5,37 @@ class spn_driver extends uvm_driver #(spn_seq_item);
 
   function new (string name = "driver", uvm_component parent = null);
     super.new(name, parent);
-  endfunction
+  endfunction : new
+
+  // ============================================================
 
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
+    // Get the virtual interface from the config DB
     if(!uvm_config_db#(virtual spn_if)::get(this, "", "vif", vif))
       `uvm_fatal("NO_VIF",{"virtual interface must be set for: ", get_full_name(), ".vif"});
   endfunction: build_phase
 
   virtual task run_phase(uvm_phase phase);
     spn_seq_item req;
+    super.run_phase(phase);
     forever begin
+      // Wait for the next item from the sequencer
       seq_item_port.get_next_item(req);
+      // Drive the request to the interface
       drive(req);
+      // Indicate that the item has been processed
       seq_item_port.item_done();
     end
-  endtask
+  endtask : run_phase
 
-  // ------------------------------------------------------------------
+  // ============================================================
+  
   virtual task drive (spn_seq_item req);
-    //--------------------------------------------------------- align to edge
+
     @(vif.DRIVER.driver_cb);
 
-    // present request
+    // Drive the request to the interface
     vif.DRIVER.driver_cb.opcode               <= req.opcode;
     vif.DRIVER.driver_cb.data_in              <= req.data_in;
     vif.DRIVER.driver_cb.symmetric_secret_key <= req.symmetric_secret_key;
@@ -35,15 +43,16 @@ class spn_driver extends uvm_driver #(spn_seq_item);
     `uvm_info(get_type_name(),
               $sformatf("Driving item: %s", req.convert2string()), UVM_LOW);
 
-    //------------------------------------------------ wait for correct VALID
+    // Wait for the result to be ready by checking the valid bits
     unique case (req.opcode)
       2'b01 : wait (vif.DRIVER.driver_cb.valid == 2'b01); // encryption done
       2'b10 : wait (vif.DRIVER.driver_cb.valid == 2'b10); // decryption done
       default : wait (vif.DRIVER.driver_cb.valid == 2'b00 ||
-                       vif.DRIVER.driver_cb.valid == 2'b11);
+                      vif.DRIVER.driver_cb.valid == 2'b11);
     endcase
 
-    // give DUT one quiet cycle before next request (optional, but nice)
+    // give DUT one quiet cycle before next request
     @(vif.DRIVER.driver_cb);
-  endtask
+  endtask : drive
+
 endclass
