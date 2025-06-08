@@ -24,7 +24,6 @@ package spn_cu_pkg;
 	    rand logic [15:0] data_in;
 	    rand logic [31:0] symmetric_secret_key;
 	    rand logic [1:0]  opcode;   
-	    rand logic        mode; // 0-> encryption / 1-> decryption
 	         logic [15:0] data_out;
 	    
 	
@@ -43,7 +42,7 @@ package spn_cu_pkg;
 	        Dec_R_K[0] = Enc_R_K[2];
 	        Dec_R_K[1] = Enc_R_K[1];
 	        Dec_R_K[2] = Enc_R_K[0];
-	    endfunction
+		endfunction : compute_keys
 	
 	    // S-box lookup
 	    function logic [3:0] sbox_lookup(input logic [3:0] nibble);
@@ -57,7 +56,7 @@ package spn_cu_pkg;
 	        4'hC: sbox_lookup = 4'hF;  4'hD: sbox_lookup = 4'hD;
 	        4'hE: sbox_lookup = 4'h7;  4'hF: sbox_lookup = 4'hE;
 	        endcase
-	    endfunction
+		endfunction : sbox_lookup
 	
 	    // Inverse S-box lookup
 	    function logic [3:0] invsbox_lookup(input logic [3:0] nibble);
@@ -71,59 +70,53 @@ package spn_cu_pkg;
 	        4'hC: invsbox_lookup = 4'h5;  4'hD: invsbox_lookup = 4'hD;
 	        4'hE: invsbox_lookup = 4'hF;  4'hF: invsbox_lookup = 4'hC;
 	        endcase
-	    endfunction
+	    endfunction : invsbox_lookup
 	
 	    // P-box permutation
 	    function logic [15:0] pbox(input logic [15:0] in);
 	        return {in[7:0], in[15:8]};
-	    endfunction
+	    endfunction : pbox
 	
 	    // Round encryption
 	    function logic [15:0] round_encrypt(input logic [15:0] data, input logic [15:0] key);
 	        logic [15:0] mix_out, sbox_out;
-	        begin
 	        mix_out = data ^ key;
 	        for (int i = 0; i < 16; i += 4)
 	            sbox_out[i +: 4] = sbox_lookup(mix_out[i +: 4]);
 	        return pbox(sbox_out);
-	        end
-	    endfunction
+	    endfunction : round_encrypt
 	
 	    // Round decryption
 	    function logic [15:0] round_decrypt(input logic [15:0] data, input logic [15:0] key);
 	        logic [15:0] pbox_out, sbox_out;
-	        begin
 	        pbox_out = pbox(data);
 	        for (int i = 0; i < 16; i += 4)
 	            sbox_out[i +: 4] = invsbox_lookup(pbox_out[i +: 4]);
 	        return sbox_out ^ key;
-	        end
-	    endfunction	    // Process (encryption or decryption)
-	    
+	    endfunction	: round_decrypt    
+
+		// Predict based on inputs
 		function logic [15:0] predict();
-	        logic [15:0] data;
-	        compute_keys(symmetric_secret_key);
-	        if (mode == 0) begin
-	        data = round_encrypt(data_in, Enc_R_K[0]);
-	        data = round_encrypt(data, Enc_R_K[1]);
-	        data = round_encrypt(data, Enc_R_K[2]);
-	        end else begin
-	        data = round_decrypt(data_in, Dec_R_K[0]);
-	        data = round_decrypt(data, Dec_R_K[1]);
-	        data = round_decrypt(data, Dec_R_K[2]);
-	        end
-			$display("Predicting data_out=0x%0h for data_in=0x%0h with key=0x%0h in mode=%0d", data, data_in, symmetric_secret_key, mode);
-	        return data;
-	    endfunction
-
-	    // Alternative interface for compatibility with standalone testbench
-	    function logic [15:0] process(logic [15:0] input_data, logic [31:0] key, logic operation_mode);
-	        data_in = input_data;
-	        symmetric_secret_key = key;
-	        mode = operation_mode;
-	        return predict();
-	    endfunction
-
+			logic [15:0] data;
+			compute_keys(symmetric_secret_key);
+			if (opcode == encrypt) begin			// Encryption
+				data = round_encrypt(data_in, Enc_R_K[0]);
+				data = round_encrypt(data, Enc_R_K[1]);
+				data = round_encrypt(data, Enc_R_K[2]);
+			end else if (opcode == decrypt) begin	// Decryption
+				data = round_decrypt(data_in, Dec_R_K[0]);
+				data = round_decrypt(data, Dec_R_K[1]);
+				data = round_decrypt(data, Dec_R_K[2]);
+			end else if (opcode == no_op) begin		// Undefined or no-op modes
+				data = data_in; 					// no_op mode, return input as output
+			end else begin							// Undefined operation, return output as high impedance
+				data = 'z;
+			end
+			$display("Predicted data_out=0x%0h for data_in=0x%0h, key=0x%0h, opcode=%0b",
+				data, data_in, symmetric_secret_key, opcode);
+			return data;
+	    endfunction : predict
+		
 	endclass
 
 endpackage
