@@ -13,6 +13,4 @@ package spn_tb_pkg;
     `include "spn_env.sv"
     `include "spn_base_test.sv"
     `include "spn_test.sv"
-    `include "spn_test_encrypt.sv"
-    `include "spn_test_decrypt.sv"
 endpackage
