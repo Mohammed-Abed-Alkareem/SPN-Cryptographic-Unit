@@ -26,8 +26,8 @@ module testbench;
 
   initial begin 
     uvm_config_db#(virtual spn_if)::set(uvm_root::get(), "*", "vif", spn_interface);
-    // uvm_config_db#(string)::set(null, "*", "sequence_type", "spn_sequence_combination");
-    // uvm_config_db#(int)::set(null, "*", "num_iterations", 15);
+    uvm_config_db#(string)::set(null, "*", "sequence_type", "spn_sequence_corner_cases");
+    //uvm_config_db#(int)::set(null, "*", "num_iterations", 15);
     uvm_config_db#(int)::set(null, "*", "encrypt_transactions", 10);
     uvm_config_db#(int)::set(null, "*", "decrypt_transactions", 8);
     uvm_config_db#(int)::set(null, "*", "noop_transactions", 3);
@@ -38,8 +38,6 @@ module testbench;
   end
     initial begin
     run_test("spn_test");
-    //run_test("spn_test_encrypt");
-    //run_test("spn_test_decrypt");
   end
   
 endmodule

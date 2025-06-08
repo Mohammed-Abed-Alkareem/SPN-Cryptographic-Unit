@@ -68,7 +68,8 @@ class spn_test extends spn_base_test;
             end
             default: begin
                 `uvm_warning(get_type_name(), $sformatf("Unknown sequence type '%s', using default", sequence_type));
-                seq = spn_sequence_combination::type_id::create("seq");            end
+                seq = spn_sequence_combination::type_id::create("seq");            
+            end
         endcase
     endfunction : choose_sequence
         
