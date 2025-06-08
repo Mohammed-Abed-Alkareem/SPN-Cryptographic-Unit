@@ -43,14 +43,6 @@ class spn_driver extends uvm_driver #(spn_seq_item);
     `uvm_info(get_type_name(),
               $sformatf("Driving item: %s", req.convert2string()), UVM_LOW);
 
-    // Wait for the result to be ready by checking the valid bits
-    unique case (req.opcode)
-      2'b01 : wait (vif.DRIVER.driver_cb.valid == 2'b01); // encryption done
-      2'b10 : wait (vif.DRIVER.driver_cb.valid == 2'b10); // decryption done
-      default : wait (vif.DRIVER.driver_cb.valid == 2'b00 ||
-                      vif.DRIVER.driver_cb.valid == 2'b11);
-    endcase
-
     // give DUT one quiet cycle before next request
     @(vif.DRIVER.driver_cb);
   endtask : drive
