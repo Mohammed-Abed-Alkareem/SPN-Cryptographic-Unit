@@ -3,7 +3,7 @@ class spn_test extends spn_base_test;
 
     spn_base_sequence seq;
     string sequence_type = "spn_sequence_combination";  // Default
-    int num_iterations = 10;                           // Default
+    int num_iterations = 15;                           // Default
 
     function new(string name = "spn_test",uvm_component parent=null);
         super.new(name,parent);

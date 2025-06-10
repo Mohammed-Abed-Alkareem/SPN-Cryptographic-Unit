@@ -58,10 +58,10 @@ class spn_sequence_combination extends spn_base_sequence;
   `uvm_object_utils(spn_sequence_combination)
   
   // Default values
-  int encrypt_transactions = 5;
-  int decrypt_transactions = 5;
-  int noop_transactions = 2;
-  int undefined_transactions = 3;
+  int encrypt_transactions = 10;
+  int decrypt_transactions = 10;
+  int noop_transactions = 10;
+  int undefined_transactions = 10;
   
   function new(string name = "spn_sequence_combination");
     super.new(name);
@@ -390,14 +390,9 @@ class spn_sequence_corner_cases extends spn_base_sequence;
     spn_sequence_rapid_changes rapid_changes;
     spn_sequence_undefined_stress undefined_stress;
     spn_sequence_boundary_values boundary_values;
-    // spn_sequence_reset_recovery reset_recovery;
     spn_sequence_same_key_diff_data same_key_diff_data;
     
     `uvm_info(get_type_name(), "Starting comprehensive corner case testing", UVM_LOW);
-    
-    // Normal operations first
-    // normal_combo = spn_sequence_combination::type_id::create("normal_combo");
-    // normal_combo.start(m_sequencer);
     
     // Key corner cases
     key_corner = spn_sequence_key_corner_cases::type_id::create("key_corner");
@@ -418,10 +413,6 @@ class spn_sequence_corner_cases extends spn_base_sequence;
     // Boundary values
     boundary_values = spn_sequence_boundary_values::type_id::create("boundary_values");
     boundary_values.start(m_sequencer);
-    
-    // // Reset recovery
-    // reset_recovery = spn_sequence_reset_recovery::type_id::create("reset_recovery");
-    // reset_recovery.start(m_sequencer);
     
     // Same key different data
     same_key_diff_data = spn_sequence_same_key_diff_data::type_id::create("same_key_diff_data");
