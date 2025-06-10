@@ -27,6 +27,12 @@ class spn_monitor extends uvm_monitor;
     logic [1:0] prev_valid = 2'b00;
     forever begin
       @(vif.MONITOR.monitor_cb);
+      // Capture valid transitions, exclude 00↔11 transitions
+      if (((prev_valid == 2'b00 && (vif.MONITOR.monitor_cb.valid == 2'b01 || vif.MONITOR.monitor_cb.valid == 2'b10)) ||  // 00→01, 00→10
+          (prev_valid == 2'b01 && (vif.MONITOR.monitor_cb.valid == 2'b00 || vif.MONITOR.monitor_cb.valid == 2'b10)) ||  // 01→00, 01→10  
+          (prev_valid == 2'b10 && (vif.MONITOR.monitor_cb.valid == 2'b00 || vif.MONITOR.monitor_cb.valid == 2'b01))) && // 10→00, 10→01
+          !(prev_valid == 2'b00 && vif.MONITOR.monitor_cb.valid == 2'b11) &&  // Exclude 00→11
+          !(prev_valid == 2'b11 && vif.MONITOR.monitor_cb.valid == 2'b00)) begin // Exclude 11→00
       // Detect rising edge of valid (from 00 to non-00)
       if (prev_valid == 2'b00 && vif.MONITOR.monitor_cb.valid != 2'b00) begin
         trans_collected = new;
