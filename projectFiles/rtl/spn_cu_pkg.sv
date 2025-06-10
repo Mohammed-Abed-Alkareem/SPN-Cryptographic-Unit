@@ -112,7 +112,7 @@ package spn_cu_pkg;
 			end else begin							// Undefined operation, return output as high impedance
 				data = 'z;
 			end
-			$display("Predicted data_out=0x%0h for data_in=0x%0h, key=0x%0h, opcode=%0b",
+			$display("[RM] Predicted data_out=0x%0h for data_in=0x%0h, key=0x%0h, opcode=%0b",
 				data, data_in, symmetric_secret_key, opcode);
 			return data;
 	    endfunction : predict

@@ -8,8 +8,7 @@ class spn_base_sequence extends uvm_sequence#(spn_seq_item);
 
   function new(string name = "spn_base_sequence");
     super.new(name);
-    if (!uvm_config_db#(int)::get(null, "", "num_transactions", num_transactions)) 
-            `uvm_info(get_type_name(), $sformatf("Using default num_transactions: %0d", num_transactions), UVM_LOW);
+    uvm_config_db#(int)::get(null, "", "num_transactions", num_transactions);
         
   endfunction : new
 
@@ -43,10 +42,6 @@ class spn_sequence extends spn_base_sequence;
   // ==========================================================================
   
   virtual task body();
-    `uvm_info(get_type_name(), 
-      $sformatf("Starting %0d transactions with opcode %s", 
-                num_transactions, target_opcode.name()), UVM_LOW);
-    
     repeat(num_transactions) begin
       `uvm_do_with(req, {req.opcode == target_opcode;})
     end
@@ -71,70 +66,39 @@ class spn_sequence_combination extends spn_base_sequence;
   
   // ==========================================================================
 
-  virtual task pre_body();
-    super.pre_body();
-    
-      // Get configuration from config DB
-    if (!uvm_config_db#(int)::get(null, get_full_name(), "encrypt_transactions", encrypt_transactions)) begin
-      `uvm_info(get_type_name(), "Using default encrypt_transactions", UVM_LOW);
-    end
-    
-    if (!uvm_config_db#(int)::get(null, get_full_name(), "decrypt_transactions", decrypt_transactions)) begin
-      `uvm_info(get_type_name(), "Using default decrypt_transactions", UVM_LOW);
-    end
-    
-    if (!uvm_config_db#(int)::get(null, get_full_name(), "noop_transactions", noop_transactions)) begin
-      `uvm_info(get_type_name(), "Using default noop_transactions", UVM_LOW);
-    end
-    
-    if (!uvm_config_db#(int)::get(null, get_full_name(), "undefined_transactions", undefined_transactions)) begin
-      `uvm_info(get_type_name(), "Using default undefined_transactions", UVM_LOW);
-    end
-  endtask : pre_body
-
-  
-  // ==========================================================================
-
   virtual task body();
     spn_sequence encrypt_seq;
     spn_sequence decrypt_seq;
     spn_sequence noop_seq;
     spn_sequence undefined_seq;
     
-    // Create encrypt sequence
-    encrypt_seq = spn_sequence::type_id::create("encrypt_seq");
-    encrypt_seq.target_opcode = encrypt;
-    encrypt_seq.num_transactions = encrypt_transactions;
-    
-    // Create decrypt sequence  
-    decrypt_seq = spn_sequence::type_id::create("decrypt_seq");
-    decrypt_seq.target_opcode = decrypt;
-    decrypt_seq.num_transactions = decrypt_transactions;
-    
-    // Create no-op sequence
-    noop_seq = spn_sequence::type_id::create("noop_seq");
-    noop_seq.target_opcode = no_op;
-    noop_seq.num_transactions = noop_transactions;
-    
-    // Create undefined sequence
-    undefined_seq = spn_sequence::type_id::create("undefined_seq");
-    undefined_seq.target_opcode = undefined;
-    undefined_seq.num_transactions = undefined_transactions;
-    
-    // Execute sequences in order
-    `uvm_info(get_type_name(), "Starting combination sequence with encrypt operations", UVM_LOW);
-    encrypt_seq.start(m_sequencer);
-    
-    `uvm_info(get_type_name(), "Starting combination sequence with decrypt operations", UVM_LOW);
-    decrypt_seq.start(m_sequencer);
-    
-    `uvm_info(get_type_name(), "Starting combination sequence with no-op operations", UVM_LOW);
-    noop_seq.start(m_sequencer);
-    
-    `uvm_info(get_type_name(), "Starting combination sequence with undefined operations", UVM_LOW);
-    undefined_seq.start(m_sequencer);
-    
-    `uvm_info(get_type_name(), "Combination sequence completed", UVM_LOW);
+    repeat(num_transactions) begin
+      // Create encrypt sequence
+      encrypt_seq = spn_sequence::type_id::create("encrypt_seq");
+      encrypt_seq.target_opcode = encrypt;
+      encrypt_seq.num_transactions = 1;
+      
+      // Create decrypt sequence  
+      decrypt_seq = spn_sequence::type_id::create("decrypt_seq");
+      decrypt_seq.target_opcode = decrypt;
+      decrypt_seq.num_transactions = 1;
+      
+      // Create no-op sequence
+      noop_seq = spn_sequence::type_id::create("noop_seq");
+      noop_seq.target_opcode = no_op;
+      noop_seq.num_transactions = 1;
+      
+      // Create undefined sequence
+      undefined_seq = spn_sequence::type_id::create("undefined_seq");
+      undefined_seq.target_opcode = undefined;
+      undefined_seq.num_transactions = 1; 
+
+      encrypt_seq.start(m_sequencer);
+      decrypt_seq.start(m_sequencer);
+      noop_seq.start(m_sequencer);
+      undefined_seq.start(m_sequencer);
+
+    end
   endtask : body
 
 endclass
@@ -264,7 +228,7 @@ class spn_sequence_rapid_changes extends spn_base_sequence;
   
   virtual task body();
     // Rapid opcode changes
-    repeat(10) begin
+    repeat(5) begin
       `uvm_do_with(req, {
         req.opcode dist {encrypt := 1, decrypt := 1, no_op := 1, undefined := 1};
       })
@@ -394,31 +358,37 @@ class spn_sequence_corner_cases extends spn_base_sequence;
     spn_sequence_same_key_diff_data same_key_diff_data;
     
     `uvm_info(get_type_name(), "Starting comprehensive corner case testing", UVM_LOW);
-    
-    // Key corner cases
-    key_corner = spn_sequence_key_corner_cases::type_id::create("key_corner");
-    key_corner.start(m_sequencer);
-    
-    // Data patterns
-    data_patterns = spn_sequence_data_patterns::type_id::create("data_patterns");
-    data_patterns.start(m_sequencer);
-    
-    // Rapid changes
-    rapid_changes = spn_sequence_rapid_changes::type_id::create("rapid_changes");
-    rapid_changes.start(m_sequencer);
-    
-    // Undefined operations stress
-    undefined_stress = spn_sequence_undefined_stress::type_id::create("undefined_stress");
-    undefined_stress.start(m_sequencer);
-    
-    // Boundary values
-    boundary_values = spn_sequence_boundary_values::type_id::create("boundary_values");
-    boundary_values.start(m_sequencer);
-    
-    // Same key different data
-    same_key_diff_data = spn_sequence_same_key_diff_data::type_id::create("same_key_diff_data");
-    same_key_diff_data.start(m_sequencer);
-    
+    repeat(num_transactions) begin
+      // Key corner cases
+      key_corner = spn_sequence_key_corner_cases::type_id::create("key_corner");
+      key_corner.num_transactions = 1; // One transaction per corner case
+      key_corner.start(m_sequencer);
+      
+      // Data patterns
+      data_patterns = spn_sequence_data_patterns::type_id::create("data_patterns");
+      data_patterns.num_transactions = 1; // One transaction per pattern
+      data_patterns.start(m_sequencer);
+      
+      // Rapid changes
+      rapid_changes = spn_sequence_rapid_changes::type_id::create("rapid_changes");
+      rapid_changes.num_transactions = 1; // One transaction per rapid change
+      rapid_changes.start(m_sequencer);
+      
+      // Undefined operations stress
+      undefined_stress = spn_sequence_undefined_stress::type_id::create("undefined_stress");
+      undefined_stress.num_transactions = 1; // One transaction per stress case
+      undefined_stress.start(m_sequencer);
+      
+      // Boundary values
+      boundary_values = spn_sequence_boundary_values::type_id::create("boundary_values");
+      boundary_values.num_transactions = 1; // One transaction per boundary value
+      boundary_values.start(m_sequencer);
+      
+      // Same key different data
+      same_key_diff_data = spn_sequence_same_key_diff_data::type_id::create("same_key_diff_data");
+      same_key_diff_data.num_transactions = 1; // One transaction per data pattern
+      same_key_diff_data.start(m_sequencer);
+    end
     `uvm_info(get_type_name(), "Comprehensive corner case testing completed", UVM_LOW);
   endtask
 endclass

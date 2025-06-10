@@ -28,10 +28,6 @@ module testbench;
     uvm_config_db#(virtual spn_if)::set(uvm_root::get(), "*", "vif", spn_interface);
     uvm_config_db#(string)::set(null, "*", "sequence_type", "spn_sequence_encryption_decryption");
     //uvm_config_db#(int)::set(null, "*", "num_transactions", 15);
-    // uvm_config_db#(int)::set(null, "*", "encrypt_transactions", 10);
-    // uvm_config_db#(int)::set(null, "*", "decrypt_transactions", 8);
-    // uvm_config_db#(int)::set(null, "*", "noop_transactions", 3);
-    // uvm_config_db#(int)::set(null, "*", "undefined_transactions", 2);
     //enable wave dump
     $dumpfile("dump.vcd"); 
     $dumpvars;
