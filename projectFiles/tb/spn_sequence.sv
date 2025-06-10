@@ -72,12 +72,24 @@ class spn_sequence_combination extends spn_base_sequence;
   virtual task pre_body();
     super.pre_body();
     
-    // Get configuration from config DB
-    uvm_config_db#(int)::get(null, get_full_name(), "encrypt_transactions", encrypt_transactions);
-    uvm_config_db#(int)::get(null, get_full_name(), "decrypt_transactions", decrypt_transactions);
-    uvm_config_db#(int)::get(null, get_full_name(), "noop_transactions", noop_transactions);
-    uvm_config_db#(int)::get(null, get_full_name(), "undefined_transactions", undefined_transactions);
+      // Get configuration from config DB
+    if (!uvm_config_db#(int)::get(null, get_full_name(), "encrypt_transactions", encrypt_transactions)) begin
+      `uvm_info(get_type_name(), "Using default encrypt_transactions", UVM_LOW);
+    end
+    
+    if (!uvm_config_db#(int)::get(null, get_full_name(), "decrypt_transactions", decrypt_transactions)) begin
+      `uvm_info(get_type_name(), "Using default decrypt_transactions", UVM_LOW);
+    end
+    
+    if (!uvm_config_db#(int)::get(null, get_full_name(), "noop_transactions", noop_transactions)) begin
+      `uvm_info(get_type_name(), "Using default noop_transactions", UVM_LOW);
+    end
+    
+    if (!uvm_config_db#(int)::get(null, get_full_name(), "undefined_transactions", undefined_transactions)) begin
+      `uvm_info(get_type_name(), "Using default undefined_transactions", UVM_LOW);
+    end
   endtask : pre_body
+ 
   
   // ==========================================================================
 
