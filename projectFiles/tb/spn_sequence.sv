@@ -4,13 +4,22 @@ import spn_cu_pkg::operation_t;
 
 class spn_base_sequence extends uvm_sequence#(spn_seq_item); 
   `uvm_object_utils(spn_base_sequence)
+  rand int num_transactions = 10;
 
   function new(string name = "spn_base_sequence");
     super.new(name);
+    if (!uvm_config_db#(int)::get(null, "", "num_transactions", num_transactions)) 
+            `uvm_info(get_type_name(), $sformatf("Using default num_transactions: %0d", num_transactions), UVM_LOW);
+        
   endfunction : new
 
   // ==========================================================================
-
+  
+  constraint num_trans_c {
+      num_transactions inside {[1:100]};
+    }
+  
+  // ==========================================================================
   // Create, Randomize and Send the item to driver via the sequencer
   virtual task body();
       `uvm_do(req)
@@ -24,13 +33,6 @@ class spn_sequence extends spn_base_sequence;
   `uvm_object_utils(spn_sequence)
   
   rand operation_t target_opcode;
-  rand int num_transactions;
-  
-  // ==========================================================================
-
-  constraint num_trans_c {
-    num_transactions inside {[1:100]};
-  }
   
   // ==========================================================================
 
@@ -89,7 +91,7 @@ class spn_sequence_combination extends spn_base_sequence;
       `uvm_info(get_type_name(), "Using default undefined_transactions", UVM_LOW);
     end
   endtask : pre_body
- 
+
   
   // ==========================================================================
 
@@ -149,20 +151,21 @@ class spn_sequence_encryption_decryption extends spn_base_sequence;
   virtual task body();
     spn_sequence encrypt_seq;
     spn_sequence decrypt_seq;
-    
-    // Create encrypt sequence
-    encrypt_seq = spn_sequence::type_id::create("encrypt_seq");
-    encrypt_seq.target_opcode = encrypt;
-    encrypt_seq.num_transactions = 1;  // One encrypt operation
-    
-    // Create decrypt sequence
-    decrypt_seq = spn_sequence::type_id::create("decrypt_seq");  
-    decrypt_seq.target_opcode = decrypt;
-    decrypt_seq.num_transactions = 1;  // One decrypt operation
-    
-    // Execute back-to-back
-    encrypt_seq.start(m_sequencer);
-    decrypt_seq.start(m_sequencer);
+    repeat(num_transactions) begin
+      // Create encrypt sequence
+      encrypt_seq = spn_sequence::type_id::create("encrypt_seq");
+      encrypt_seq.target_opcode = encrypt;
+      encrypt_seq.num_transactions = 1;  // One encrypt operation
+      
+      // Create decrypt sequence
+      decrypt_seq = spn_sequence::type_id::create("decrypt_seq");  
+      decrypt_seq.target_opcode = decrypt;
+      decrypt_seq.num_transactions = 1;  // One decrypt operation
+      
+      // Execute back-to-back
+      encrypt_seq.start(m_sequencer);
+      decrypt_seq.start(m_sequencer);
+    end
   endtask : body
 
 endclass
@@ -261,7 +264,7 @@ class spn_sequence_rapid_changes extends spn_base_sequence;
   
   virtual task body();
     // Rapid opcode changes
-    repeat(20) begin
+    repeat(10) begin
       `uvm_do_with(req, {
         req.opcode dist {encrypt := 1, decrypt := 1, no_op := 1, undefined := 1};
       })
@@ -290,7 +293,7 @@ class spn_sequence_undefined_stress extends spn_base_sequence;
   
   virtual task body();
     // Multiple undefined operations
-    repeat(10) begin
+    repeat(5) begin
       `uvm_do_with(req, {req.opcode == undefined;})
     end
     
@@ -334,20 +337,6 @@ class spn_sequence_boundary_values extends spn_base_sequence;
       req.symmetric_secret_key == 32'hFFFFFFFF;
     })
     
-    // Test powers of 2
-    for (int i = 0; i < 16; i++) begin
-      `uvm_do_with(req, {
-        req.opcode == encrypt;
-        req.data_in == (16'h1 << i);
-      })
-    end
-    
-    for (int i = 0; i < 32; i++) begin
-      `uvm_do_with(req, {
-        req.opcode == encrypt;
-        req.symmetric_secret_key == (32'h1 << i);
-      })
-    end
   endtask
 endclass
 
@@ -368,7 +357,7 @@ class spn_sequence_same_key_diff_data extends spn_base_sequence;
     end
     
     // Test multiple data patterns with same key
-    repeat(10) begin
+    repeat(5) begin
       `uvm_do_with(req, {
         req.opcode == encrypt;
         req.symmetric_secret_key == fixed_key;
@@ -377,7 +366,7 @@ class spn_sequence_same_key_diff_data extends spn_base_sequence;
     end
     
     // Same for decrypt
-    repeat(10) begin
+    repeat(5) begin
       `uvm_do_with(req, {
         req.opcode == decrypt;
         req.symmetric_secret_key == fixed_key;

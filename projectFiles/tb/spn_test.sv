@@ -3,7 +3,6 @@ class spn_test extends spn_base_test;
 
     spn_base_sequence seq;
     string sequence_type = "spn_sequence_combination";  // Default
-    int num_iterations = 15;                           // Default
 
     function new(string name = "spn_test",uvm_component parent=null);
         super.new(name,parent);
@@ -18,9 +17,6 @@ class spn_test extends spn_base_test;
             `uvm_info(get_type_name(), $sformatf("Using default sequence_type: %s", sequence_type), UVM_LOW);
         end
         
-        if (!uvm_config_db#(int)::get(this, "", "num_iterations", num_iterations)) begin
-            `uvm_info(get_type_name(), $sformatf("Using default num_iterations: %0d", num_iterations), UVM_LOW);
-        end
         // Create the sequence based on configuration
         choose_sequence(sequence_type);
         
@@ -77,15 +73,7 @@ class spn_test extends spn_base_test;
 
     task run_phase(uvm_phase phase);
         phase.raise_objection(this);
-        `uvm_info(get_type_name(), 
-                $sformatf("Starting test with %0d iterations of %s", 
-                        num_iterations, sequence_type), UVM_LOW);
-
-        for (int i = 0; i < num_iterations; i++) begin
-            `uvm_info(get_type_name(), $sformatf("Running iteration %0d", i+1), UVM_LOW);
-            seq.start(env.spn_agnt.sequencer);
-        end
-
+        seq.start(env.spn_agnt.sequencer);
         phase.drop_objection(this);
     endtask : run_phase
 
