@@ -22,7 +22,7 @@ class spn_monitor extends uvm_monitor;
     // Get the virtual interface from the config DB
     if (!uvm_config_db#(virtual spn_if)::get(this, "", "vif", vif))
       `uvm_fatal("NOVIF", {"virtual interface must be set for: ",
-                           get_full_name(), ".vif"});
+                          get_full_name(), ".vif"});
   endfunction : build_phase
 
   // ============================================================

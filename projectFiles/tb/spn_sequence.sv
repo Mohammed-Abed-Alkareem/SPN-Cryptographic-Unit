@@ -145,31 +145,35 @@ class spn_sequence_key_corner_cases extends spn_base_sequence;
   
   virtual task body();
     // All zeros key
-    `uvm_do_with(req, {
-      req.opcode == encrypt;
-      req.symmetric_secret_key == 32'h00000000;
-      req.data_in == 16'hAAAA;
-    })
+    req = spn_seq_item::type_id::create("req");
+    req.opcode = encrypt;
+    req.symmetric_secret_key = 32'h00000000;
+    req.data_in = 16'hAAAA;
+    start_item(req);
+    finish_item(req);
     
     // All ones key
-    `uvm_do_with(req, {
-      req.opcode == encrypt;
-      req.symmetric_secret_key == 32'hFFFFFFFF;
-      req.data_in == 16'h5555;
-    })
+    req = spn_seq_item::type_id::create("req");
+    req.opcode = encrypt;
+    req.symmetric_secret_key = 32'hFFFFFFFF;
+    req.data_in = 16'h5555;
+    start_item(req);
+    finish_item(req);
     
     // Alternating pattern keys
-    `uvm_do_with(req, {
-      req.opcode == encrypt;
-      req.symmetric_secret_key == 32'hAAAAAAAA;
-      req.data_in == 16'h1234;
-    })
+    req = spn_seq_item::type_id::create("req");
+    req.opcode = encrypt;
+    req.symmetric_secret_key = 32'hAAAAAAAA;
+    req.data_in = 16'h1234;
+    start_item(req);
+    finish_item(req);
     
-    `uvm_do_with(req, {
-      req.opcode == encrypt;
-      req.symmetric_secret_key == 32'h55555555;
-      req.data_in == 16'h1234;
-    })
+    req = spn_seq_item::type_id::create("req");
+    req.opcode = encrypt;
+    req.symmetric_secret_key = 32'h55555555;
+    req.data_in = 16'h1234;
+    start_item(req);
+    finish_item(req);
   endtask
 endclass
 
@@ -184,35 +188,41 @@ class spn_sequence_data_patterns extends spn_base_sequence;
   
   virtual task body();
     // All zeros data
-    `uvm_do_with(req, {
-      req.opcode == encrypt;
-      req.data_in == 16'h0000;
-      req.symmetric_secret_key == 32'h12345678;
-    })
+    req = spn_seq_item::type_id::create("req");
+    req.opcode = encrypt;
+    req.symmetric_secret_key = 32'h12345678;
+    req.data_in = 16'h0000;
+    start_item(req);
+    finish_item(req);
+    
     
     // All ones data
-    `uvm_do_with(req, {
-      req.opcode == encrypt;
-      req.data_in == 16'hFFFF;
-      req.symmetric_secret_key == 32'h12345678;
-    })
+    req = spn_seq_item::type_id::create("req");
+    req.opcode = encrypt;
+    req.symmetric_secret_key = 32'h12345678;
+    req.data_in = 16'hFFFF;
+    start_item(req);
+    finish_item(req);
+    
     
     // Walking ones
     for (int i = 0; i < 16; i++) begin
-      `uvm_do_with(req, {
-        req.opcode == encrypt;
-        req.data_in == (16'h1 << i);
-        req.symmetric_secret_key == 32'h12345678;
-      })
+      req = spn_seq_item::type_id::create("req");
+      req.opcode = encrypt;
+      req.symmetric_secret_key = 32'h12345678;
+      req.data_in = (16'h1 << i);
+      start_item(req);
+      finish_item(req);
     end
     
     // Walking zeros
     for (int i = 0; i < 16; i++) begin
-      `uvm_do_with(req, {
-        req.opcode == encrypt;
-        req.data_in == ~(16'h1 << i);
-        req.symmetric_secret_key == 32'h12345678;
-      })
+      req = spn_seq_item::type_id::create("req");
+      req.opcode = encrypt;
+      req.symmetric_secret_key = 32'h12345678;
+      req.data_in = ~(16'h1 << i);
+      start_item(req);
+      finish_item(req);
     end
   endtask
 endclass
@@ -288,18 +298,21 @@ class spn_sequence_boundary_values extends spn_base_sequence;
   
   virtual task body();
     // Test with minimum values
-    `uvm_do_with(req, {
-      req.opcode == encrypt;
-      req.data_in == 16'h0000;
-      req.symmetric_secret_key == 32'h00000000;
-    })
+    req = spn_seq_item::type_id::create("req");
+    req.opcode = encrypt;
+    req.symmetric_secret_key = 32'h00000000;
+    req.data_in = 16'h0000;
+    start_item(req);
+    finish_item(req);
+    
     
     // Test with maximum values
-    `uvm_do_with(req, {
-      req.opcode == encrypt;
-      req.data_in == 16'hFFFF;
-      req.symmetric_secret_key == 32'hFFFFFFFF;
-    })
+    req = spn_seq_item::type_id::create("req");
+    req.opcode = encrypt;
+    req.symmetric_secret_key = 32'hFFFFFFFF;
+    req.data_in = 16'hFFFF;
+    start_item(req);
+    finish_item(req);
     
   endtask
 endclass

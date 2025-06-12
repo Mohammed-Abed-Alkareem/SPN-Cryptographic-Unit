@@ -1,30 +1,30 @@
 package spn_cu_pkg;
 	
 	typedef enum bit [1:0] {
-	  no_op    = 2'b00,
-	  encrypt  = 2'b01,
-	  decrypt  = 2'b10,
-	  undefined= 2'b11
+		no_op    = 2'b00,
+		encrypt  = 2'b01,
+		decrypt  = 2'b10,
+		undefined= 2'b11
 	} operation_t;
 
 	typedef enum bit [1:0] {
-	  not_valid    = 2'b00,
-	  successful_encryption  = 2'b01,
-	  successful_decryption  = 2'b10,
-	  internal_error_or_undefined= 2'b11
+		not_valid    = 2'b00,
+		successful_encryption  = 2'b01,
+		successful_decryption  = 2'b10,
+		internal_error_or_undefined= 2'b11
 	} valid_t;
 	
 	typedef enum bit {
-	  ENCRYPT    = 0,
-	  DECRYPT  = 1
+		ENCRYPT    = 0,
+		DECRYPT  = 1
 	} round_t;
 	
 	class SPNReferenceModel;
 	
-	    rand logic [15:0] data_in;
-	    rand logic [31:0] symmetric_secret_key;
-	    rand logic [1:0]  opcode;   
-	         logic [15:0] data_out;
+		rand logic [15:0] data_in;
+		rand logic [31:0] symmetric_secret_key;
+		rand logic [1:0]  opcode;   
+			logic  [15:0] data_out;
 	    
 	
 	    // Round keys
